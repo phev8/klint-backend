@@ -2,9 +2,10 @@
 
 Klint-Backend serves as the data persistency layer for Klint.
 
-# Setup
+# Setup with debug certificate
 
     npm install
+		openssl req -nodes -new -x509 -keyout server.key -out server.cert
 
 # Launch
 
