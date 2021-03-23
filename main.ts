@@ -32,6 +32,8 @@ try {
   KlintStorage.addDummyData();
   KlintStorage.saveToDisk();
   KlintStorage.restoreFromDisk();
+} finally {
+  KlintStorage.autoSave();
 }
 
 //  Go live.

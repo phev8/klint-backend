@@ -32,8 +32,9 @@ class MarkingsRoutes {
       const mediaId = request.params.m;
       const key: string = KlintStorage.toCompoundKey(projectId, mediaId);
       const m = KlintStorage.markingDatas.get(key);
+      KlintStorage.alterations++;
       if (!m) {
-        return response.sendStatus(StatusCode.ClientErrorBadRequest);
+        return response.sendStatus(StatusCode.ClientErrorNotFound);
       } else {
         return response.json({ key: key, value: m });
       }
@@ -51,6 +52,7 @@ class MarkingsRoutes {
         return response.sendStatus(StatusCode.ClientErrorBadRequest);
       } else {
         KlintStorage.markingDatas.set(key, plainToClass(MarkingData, request.body));
+        KlintStorage.alterations++;
         return response.sendStatus(StatusCode.SuccessOK);
       }
     });

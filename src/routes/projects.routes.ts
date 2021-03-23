@@ -45,6 +45,7 @@ class ProjectsRoutes {
         return response.sendStatus(StatusCode.ClientErrorBadRequest);
       } else {
         KlintStorage.projects.set(request.params.id, plainToClass(Project, request.body));
+        KlintStorage.alterations++;
         return response.sendStatus(StatusCode.SuccessOK);
       }
     });
@@ -52,8 +53,17 @@ class ProjectsRoutes {
 
     //  DELETE BY ID
     this.projectsRouter.delete('/:id', async (request, response) => {
-      const wasDeleted = KlintStorage.projects.delete(request.params.id);
+      const projectID = request.params.id;
+      //  Delete Project
+      const wasDeleted = KlintStorage.projects.delete(projectID);
       if (!wasDeleted) {
+        //  Delete MarkingsData for this Project
+        KlintStorage.markingDatas.forEach((value, key) => {
+          if (key.startsWith(KlintStorage.toCompoundKey(projectID, ''))) {
+            KlintStorage.markingDatas.delete(key);
+          }
+        });
+        KlintStorage.alterations++;
         return response.sendStatus(StatusCode.ClientErrorNotFound);
       } else {
         return response.sendStatus(StatusCode.SuccessOK);
