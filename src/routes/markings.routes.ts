@@ -32,7 +32,6 @@ class MarkingsRoutes {
       const mediaId = request.params.m;
       const key: string = KlintStorage.toCompoundKey(projectId, mediaId);
       const m = KlintStorage.markingDatas.get(key);
-      KlintStorage.alterations++;
       if (!m) {
         return response.sendStatus(StatusCode.ClientErrorNotFound);
       } else {
