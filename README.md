@@ -1,11 +1,11 @@
 ﻿# Welcome to Klint-Backend!
 
-Klint-Backend serves as the data persistency layer for Klint. Data is held in memory and will periodically be saved to the disk. 
+Klint-Backend serves as the data persistency layer for Klint. Data is held in memory and will be periodically saved to the disk. 
 
 # Setup with debug certificate
 
     npm install
-		openssl req -nodes -new -x509 -keyout server.key -out server.cert
+    openssl req -nodes -new -x509 -keyout server.key -out server.cert
 
 # Launch
 
