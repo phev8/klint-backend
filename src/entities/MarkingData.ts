@@ -8,4 +8,5 @@ class MarkingData {
   taggedClassIDs: string[] = [];
   boxMarkings: BoxMarking[] = [];
 }
+
 export default MarkingData;

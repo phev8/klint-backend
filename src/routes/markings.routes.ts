@@ -55,6 +55,21 @@ class MarkingsRoutes {
         return response.sendStatus(StatusCode.SuccessOK);
       }
     });
+
+    // DELETE BY ID
+    this.markingsRouter.delete('/:p/:m', async (request, response) => {
+      const projectId = request.params.p;
+      const mediaId = request.params.m;
+      const key: string = KlintStorage.toCompoundKey(projectId, mediaId);
+      let wasDeleted = KlintStorage.markingDatas.delete(key);
+
+      if (!wasDeleted) {
+        return response.sendStatus(StatusCode.ClientErrorNotFound);
+      } else {
+        KlintStorage.alterations++;
+        return response.sendStatus(StatusCode.SuccessOK);
+      }
+    });
   }
 }
 
