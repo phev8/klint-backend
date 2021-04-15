@@ -11,11 +11,11 @@ class KlintStorage {
   public static lastSaveDuration: number = 500;
   public static projects: Map<string, Project> = new Map<string, Project>();
   public static markingDatas: Map<string, MarkingData> = new Map<string, MarkingData>();
+  public static projectsPath = process.env.PWD + '/storage/projects.json';
+  public static markingDatasPath = process.env.PWD + '/storage/markingDatas.json';
 
   private static isWriting = false;
   private static lastSave: Date;
-  private static projectsPath = process.env.PWD + '/storage/projects.json';
-  private static markingDatasPath = process.env.PWD + '/storage/markingDatas.json';
   private static delimiter = '|';
   private static jsonEncoding = 'utf8' as BufferEncoding;
 
@@ -86,10 +86,10 @@ class KlintStorage {
 
   static async addDummyData() {
     if (KlintStorage.projects !== undefined) {
-      let dummy = new Project();
-      dummy.classes.push({ classID: 'tree', defaultTitle: 'Tree', scope: MarkingScope.Objects });
-      dummy.classes.push({ classID: 'hasTrees', defaultTitle: 'Contains Tree(s)', scope: MarkingScope.Tags });
       [0, 1, 2, 3, 4].forEach(n => {
+        let dummy = new Project();
+        dummy.classes.push({ classID: 'tree', defaultTitle: 'Tree', scope: MarkingScope.Objects });
+        dummy.classes.push({ classID: 'hasTrees', defaultTitle: 'Contains Tree(s)', scope: MarkingScope.Tags });
         dummy.title = 'Important Project ' + n;
         KlintStorage.projects.set(String(n), dummy);
         for (let index = 0; index < 10; index++) {

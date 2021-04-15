@@ -9,8 +9,15 @@ import ProjectsRoutes from './src/routes/projects.routes';
 import MarkingsRoutes from './src/routes/markings.routes';
 import path from 'path';
 
-const app = express();
+//  Config
 const PORT = 4242;
+const insertDummyData = true;
+
+
+//Middleware so we can access request.body
+const app = express();
+app.use(express.json());
+
 
 //  Log Response Time and Request to Console
 app.use((req, res, next) => {
@@ -19,6 +26,7 @@ app.use((req, res, next) => {
   res.on('finish', () => { console.log('Response Time: ' + (new Date().getTime() - start) + 'ms'); });
   next();
 });
+
 
 //Setup File Uploading
 app.use(fileUpload({
@@ -29,23 +37,28 @@ app.use(fileUpload({
   preserveExtension: 4
 }));
 
+
 //  Setup Routes
 app.use('/static', express.static('storage/static'));
 app.get('/', (req: Request, res: Response) => res.send('Hello from the Klint Backend!'));
 app.use('/projects', ProjectsRoutes.router);
 app.use('/markings', MarkingsRoutes.router);
 
-//  Restore Database
-try {
-  KlintStorage.restoreFromDisk();
-} catch (error) {
-  //  Initialize Database
-  KlintStorage.addDummyData();
-  KlintStorage.saveToDisk();
-  KlintStorage.restoreFromDisk();
-} finally {
-  KlintStorage.autoSave();
+
+//  Restore Data
+if (fs.existsSync(KlintStorage.projectsPath)) {
+  try {
+    KlintStorage.restoreFromDisk();
+  } catch (error) {
+    console.log(error);
+  }
+} else {
+  if (insertDummyData) {
+    KlintStorage.addDummyData();
+  }
 }
+KlintStorage.autoSave();
+
 
 //  Go live.
 https.createServer({
