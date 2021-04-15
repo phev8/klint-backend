@@ -87,7 +87,6 @@ class KlintStorage {
   static async addDummyData() {
     if (KlintStorage.projects !== undefined) {
       let dummy = new Project();
-      dummy.imagesFolderPath = '/important/files';
       dummy.classes.push({ classID: 'tree', defaultTitle: 'Tree', scope: MarkingScope.Objects });
       dummy.classes.push({ classID: 'hasTrees', defaultTitle: 'Contains Tree(s)', scope: MarkingScope.Tags });
       [0, 1, 2, 3, 4].forEach(n => {

@@ -26,8 +26,6 @@ type TagMarkingOption = {
 class Project {
   title: string = '';
   mediaType: ProjectMediaType = ProjectMediaType.Video;
-  videoPath: string = '';
-  imagesFolderPath: string = '';
   classes: MarkingClass[] = [];
   tagMarkingOptions: TagMarkingOption[] = [];
 }
