@@ -8,6 +8,7 @@ import { KlintStorage } from './src/classes/KlintStorage';
 import ProjectsRoutes from './src/routes/projects.routes';
 import MarkingsRoutes from './src/routes/markings.routes';
 import path from 'path';
+import cors from 'cors';
 
 //  Config
 const PORT = 4242;
@@ -16,25 +17,25 @@ const insertDummyData = true;
 
 //Middleware so we can access request.body
 const app = express();
-app.use(express.json());
+app.use(express.json(), cors());
 
 
 //  Log Response Time and Request to Console
 app.use((req, res, next) => {
-  const start = new Date().getTime();
-  console.log(`${req.method} ${decodeURI(req.originalUrl)}`);
-  res.on('finish', () => { console.log('Response Time: ' + (new Date().getTime() - start) + 'ms'); });
-  next();
+	const start = new Date().getTime();
+	console.log(`${req.method} ${decodeURI(req.originalUrl)}`);
+	res.on('finish', () => { console.log('Response Time: ' + (new Date().getTime() - start) + 'ms'); });
+	next();
 });
 
 
 //Setup File Uploading
 app.use(fileUpload({
-  useTempFiles: true,
-  tempFileDir: path.join(__dirname, '/storage/tmp/'),
-  debug: false,
-  safeFileNames: true,
-  preserveExtension: 4
+	useTempFiles: true,
+	tempFileDir: path.join(__dirname, '/storage/tmp/'),
+	debug: false,
+	safeFileNames: true,
+	preserveExtension: 4
 }));
 
 
@@ -47,23 +48,24 @@ app.use('/markings', MarkingsRoutes.router);
 
 //  Restore Data
 if (fs.existsSync(KlintStorage.projectsPath)) {
-  try {
-    KlintStorage.restoreFromDisk();
-  } catch (error) {
-    console.log(error);
-  }
+	try {
+		KlintStorage.restoreFromDisk();
+	} catch (error) {
+		console.log(error);
+	}
 } else {
-  if (insertDummyData) {
-    KlintStorage.addDummyData();
-  }
+	if (insertDummyData) {
+		KlintStorage.addDummyData();
+	}
 }
 KlintStorage.autoSave();
 
 
 //  Go live.
-https.createServer({
-  key: fs.readFileSync('server.key'),
-  cert: fs.readFileSync('server.cert')
-}, app).listen(4242, () => {
-  console.log(`Running: https://localhost:${PORT}`);
-});
+app.listen(4242);
+// https.createServer({
+// 	key: fs.readFileSync('server.key'),
+// 	cert: fs.readFileSync('server.cert')
+// }, app).listen(4242, () => {
+// 	console.log(`Running: https://localhost:${PORT}`);
+// });
