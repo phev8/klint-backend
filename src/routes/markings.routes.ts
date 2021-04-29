@@ -15,11 +15,12 @@ class MarkingsRoutes {
 
   private static setup() {
     //  GET ALL
-    this.markingsRouter.get('/:p', async (request, response) => {
+    this.markingsRouter.get('/:p/:c', async (request, response) => {
       const projectId = request.params.p;
+      const collectionId = request.params.c;
       let data: KeyValuePair[] = [];
       KlintStorage.markingDatas.forEach((value, key) => {
-        if (key[0] == projectId) {
+        if (key.startsWith(KlintStorage.toCompoundKey([projectId, collectionId]))) {
           data.push({ key: key.toString(), value: value });
         }
       });
@@ -27,10 +28,11 @@ class MarkingsRoutes {
     });
 
     //  GET BY ID
-    this.markingsRouter.get('/:p/:m', async (request, response) => {
+    this.markingsRouter.get('/:p/:c/:m', async (request, response) => {
       const projectId = request.params.p;
+      const collectionId = request.params.c;
       const mediaId = request.params.m;
-      const key: string = KlintStorage.toCompoundKey(projectId, mediaId);
+      const key: string = KlintStorage.toCompoundKey([projectId, collectionId, mediaId]);
       const m = KlintStorage.markingDatas.get(key);
       if (!m) {
         return response.sendStatus(StatusCode.ClientErrorNotFound);
@@ -40,10 +42,11 @@ class MarkingsRoutes {
     });
 
     // PUT BY ID
-    this.markingsRouter.put('/:p/:m', async (request, response) => {
+    this.markingsRouter.put('/:p/:c/:m', async (request, response) => {
       const projectId = request.params.p;
+      const collectionId = request.params.c;
       const mediaId = request.params.m;
-      const key: string = KlintStorage.toCompoundKey(projectId, mediaId);
+      const key: string = KlintStorage.toCompoundKey([projectId, collectionId, mediaId]);
       //  TODO: Check for consistency
       let isValid = true;
 
@@ -57,10 +60,11 @@ class MarkingsRoutes {
     });
 
     // DELETE BY ID
-    this.markingsRouter.delete('/:p/:m', async (request, response) => {
+    this.markingsRouter.delete('/:p/:c/:m', async (request, response) => {
       const projectId = request.params.p;
+      const collectionId = request.params.c;
       const mediaId = request.params.m;
-      const key: string = KlintStorage.toCompoundKey(projectId, mediaId);
+      const key: string = KlintStorage.toCompoundKey([projectId, collectionId, mediaId]);
       let wasDeleted = KlintStorage.markingDatas.delete(key);
 
       if (!wasDeleted) {

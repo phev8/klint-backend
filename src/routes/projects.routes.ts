@@ -47,14 +47,29 @@ class ProjectsRoutes {
 
     // PUT BY ID
     this.projectsRouter.put('/:id', async (request, response) => {
+      const projectID = request.params.id;
       //  TODO: Check for consistency
       let isValid = true;
 
       if (!isValid) {
         return response.sendStatus(StatusCode.ClientErrorBadRequest);
       } else {
-        KlintStorage.projects.set(request.params.id, plainToClass(Project, request.body));
+        KlintStorage.projects.set(projectID, plainToClass(Project, request.body));
         KlintStorage.alterations++;
+
+        // Delete file folder if the corresponding collection is no longer part of this project.
+        let collectionsFolder = path.join(ProjectsRoutes.options.root, projectID)
+        if (fs.existsSync(collectionsFolder)) {
+          fs.readdirSync(collectionsFolder).forEach((entry) => {
+            if (fs.statSync(path.join(collectionsFolder, entry)).isDirectory()) {
+              if (!KlintStorage.projectHasCollection(projectID, entry)) {
+                let collectionPath = path.join(collectionsFolder, entry);
+                fs.rmdirSync(collectionPath, { recursive: true });
+                console.log('Removed file / folder for consistency: ' + collectionPath);
+              }
+            }
+          });
+        }
         return response.sendStatus(StatusCode.SuccessOK);
       }
     });
@@ -70,15 +85,16 @@ class ProjectsRoutes {
       } else {
         //  Delete MarkingsData for this Project
         KlintStorage.markingDatas.forEach((value, key) => {
-          if (key.startsWith(KlintStorage.toCompoundKey(projectID, ''))) {
+          if (key.startsWith(KlintStorage.toCompoundKey([projectID, '']))) {
             KlintStorage.markingDatas.delete(key);
           }
         });
         KlintStorage.alterations++;
 
-        //  Delete stored files for this project
+        //  Delete all stored files for this project
         const folderPath = path.join(ProjectsRoutes.options.root, projectID);
         fs.rmdirSync(folderPath, { recursive: true });
+        console.log('Removed file / folder for consistency: ' + folderPath);
         return response.sendStatus(StatusCode.SuccessOK);
       }
     });
@@ -87,9 +103,10 @@ class ProjectsRoutes {
 
   static setupFileRoutes() {
     //  Get list of available static files
-    this.projectsRouter.get('/:id/files/', async (request, response) => {
+    this.projectsRouter.get('/:id/:collectionID/files/', async (request, response) => {
       const projectID = request.params.id;
-      const folderPath = path.join(ProjectsRoutes.options.root, projectID);
+      const collectionID = request.params.collectionID;
+      const folderPath = path.join(ProjectsRoutes.options.root, projectID, collectionID);
       let fileNameList: string[] = [];
       if (fs.existsSync(folderPath)) {
         fs.readdirSync(folderPath).forEach((value) => {
@@ -101,36 +118,38 @@ class ProjectsRoutes {
 
 
     //  Get static file
-    this.projectsRouter.get('/:id/files/:fileName', async (request, response) => {
+    this.projectsRouter.get('/:id/:collectionID/files/:fileName', async (request, response) => {
       const projectID = request.params.id;
+      const collectionID = request.params.collectionID
       const fileNameWithExtension = decodeURIComponent(request.params.fileName);
-      if (!projectID || !fileNameWithExtension || !fs.existsSync(path.join(ProjectsRoutes.options.root, projectID, fileNameWithExtension))) {
+      if (!projectID || !fileNameWithExtension || !collectionID || !fs.existsSync(path.join(ProjectsRoutes.options.root, projectID, collectionID, fileNameWithExtension))) {
         return response.sendStatus(StatusCode.ClientErrorNotFound)
       } else {
-        return response.sendFile(path.join(projectID, fileNameWithExtension), ProjectsRoutes.options);
+        return response.sendFile(path.join(projectID, collectionID, fileNameWithExtension), ProjectsRoutes.options);
       }
     });
 
 
     //  Post static file
-    this.projectsRouter.post('/:id/files/', async (request, response) => {
+    this.projectsRouter.post('/:id/:collectionID/files/', async (request, response) => {
       const projectID = request.params.id;
+      const collectionID = request.params.collectionID;
       const files: fileUpload.FileArray | undefined = request.files;
       const file = files?.file as fileUpload.UploadedFile;
-      if (!KlintStorage.projects.has(projectID)) {
+      if (!KlintStorage.projects.has(projectID) || !KlintStorage.projectHasCollection(projectID, collectionID)) {
         return response.sendStatus(StatusCode.ClientErrorNotFound);
       }
       if (!file) {
         return response.sendStatus(StatusCode.ClientErrorBadRequest);
       } else {
         console.log(file);
-        const folderPath = path.join(ProjectsRoutes.options.root, projectID)
+        const folderPath = path.join(ProjectsRoutes.options.root, projectID, collectionID)
         const filePath = path.join(folderPath, file.name);
         if (fs.existsSync(filePath)) {
           fs.unlinkSync(filePath);
         }
         if (!fs.existsSync(folderPath)) {
-          fs.mkdirSync(folderPath);
+          fs.mkdirSync(folderPath, { recursive: true });
         }
         file.mv(filePath);
         return response.sendStatus(StatusCode.SuccessOK);
@@ -139,13 +158,14 @@ class ProjectsRoutes {
 
 
     //  Delete static file
-    this.projectsRouter.delete('/:id/files/:fileName', async (request, response) => {
+    this.projectsRouter.delete('/:id/:collectionID/files/:fileName', async (request, response) => {
       const projectID = request.params.id;
+      const collectionID = request.params.collectionID;
       const fileNameWithExtension = decodeURIComponent(request.params.fileName);
-      if (!projectID || !fileNameWithExtension || !fs.existsSync(path.join(ProjectsRoutes.options.root, projectID, fileNameWithExtension))) {
+      if (!projectID || !fileNameWithExtension || !collectionID || !fs.existsSync(path.join(ProjectsRoutes.options.root, projectID, collectionID, fileNameWithExtension))) {
         return response.sendStatus(StatusCode.ClientErrorNotFound)
       } else {
-        fs.unlinkSync(path.join(ProjectsRoutes.options.root, projectID, fileNameWithExtension));
+        fs.unlinkSync(path.join(ProjectsRoutes.options.root, projectID, collectionID, fileNameWithExtension));
         return response.sendStatus(StatusCode.SuccessOK);
       }
     });

@@ -1,6 +1,6 @@
 import { classToPlain, deserialize, plainToClass, serialize } from 'class-transformer';
 import MarkingData from '../entities/MarkingData';
-import { MarkingScope, Project } from '../entities/Project';
+import { MarkingScope, Project, ProjectMediaType } from '../entities/Project';
 import fs from 'fs';
 
 
@@ -19,8 +19,12 @@ class KlintStorage {
   private static delimiter = '|';
   private static jsonEncoding = 'utf8' as BufferEncoding;
 
-  static toCompoundKey(a: string, b: string): string {
-    return '' + a + this.delimiter + b;
+  static toCompoundKey(strs: string[]): string {
+    return strs.join(this.delimiter);
+  }
+
+  static fromCompoundKey(key: string): string[] {
+    return key.split(this.delimiter);
   }
 
   static async reset() {
@@ -91,18 +95,30 @@ class KlintStorage {
         dummy.classes.push({ classID: 'tree', defaultTitle: 'Tree', scope: MarkingScope.Objects });
         dummy.classes.push({ classID: 'hasTrees', defaultTitle: 'Contains Tree(s)', scope: MarkingScope.Tags });
         dummy.title = 'Important Project ' + n;
+        dummy.mediaCollections.push({ id: 'video_collection_dummy', mediaType: ProjectMediaType.Video, title: 'Video Collection' });
+        dummy.mediaCollections.push({ id: 'image_collection_dummy', mediaType: ProjectMediaType.Images, title: 'Image Collection' });
         KlintStorage.projects.set(String(n), dummy);
         for (let index = 0; index < 10; index++) {
           let markingData = new MarkingData();
           markingData.taggedClassIDs.push('hasTrees');
           markingData.boxMarkings.push({ classID: 'tree', first: [42, 42], second: [24, 24] });
-          KlintStorage.markingDatas.set(this.toCompoundKey(String(n), String(index)), markingData);
+          KlintStorage.markingDatas.set(this.toCompoundKey([String(n), 'video_collection_dummy', String(index)]), markingData);
           KlintStorage.alterations++;
         }
       });
     }
   }
 
+  static projectHasCollection(projectID: string, collectionID: string) {
+    let project = KlintStorage.projects.get(projectID);
+    let result = false;
+    project?.mediaCollections.forEach(element => {
+      if (element.id == collectionID) {
+        result = true;
+      }
+    });
+    return result;
+  };
 
 }
 export { KlintStorage, KeyValuePair };

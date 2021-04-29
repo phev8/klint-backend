@@ -23,11 +23,17 @@ type TagMarkingOption = {
   isSingleChoice: boolean
 }
 
+type MediaCollection = {
+  id: string,
+  mediaType: ProjectMediaType,
+  title: string
+}
+
 class Project {
   title: string = '';
-  mediaType: ProjectMediaType = ProjectMediaType.Video;
+  mediaCollections: MediaCollection[] = [];
   classes: MarkingClass[] = [];
   tagMarkingOptions: TagMarkingOption[] = [];
 }
 
-export { Project, MarkingClass, MarkingScope };
+export { Project, MarkingClass, MarkingScope, ProjectMediaType };
