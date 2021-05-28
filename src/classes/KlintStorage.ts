@@ -1,7 +1,9 @@
 import { classToPlain, deserialize, plainToClass, serialize } from 'class-transformer';
 import MarkingData from '../entities/MarkingData';
 import { MarkingScope, Project, ProjectMediaType } from '../entities/Project';
+import User from '../entities/User';
 import fs from 'fs';
+import crypto from 'crypto';
 
 
 type KeyValuePair = { key: string, value: unknown };
@@ -11,8 +13,10 @@ class KlintStorage {
   public static lastSaveDuration: number = 500;
   public static projects: Map<string, Project> = new Map<string, Project>();
   public static markingDatas: Map<string, MarkingData> = new Map<string, MarkingData>();
+  public static users: Map<string, User> = new Map<string, User>();
   public static projectsPath = process.env.PWD + '/storage/projects.json';
   public static markingDatasPath = process.env.PWD + '/storage/markingDatas.json';
+  public static usersPath = process.env.PWD + '/storage/users.json';
 
   private static isWriting = false;
   private static lastSave: Date;
@@ -44,6 +48,7 @@ class KlintStorage {
       KlintStorage.markingDatas.forEach((value, key) => {
         plainMarkingDatas[key] = classToPlain(value);
       });
+      fs.writeFileSync(this.usersPath, serialize(KlintStorage.users), { encoding: this.jsonEncoding });
       fs.writeFileSync(this.projectsPath, serialize(KlintStorage.projects), { encoding: this.jsonEncoding });
       fs.writeFileSync(this.markingDatasPath, JSON.stringify(plainMarkingDatas), { encoding: this.jsonEncoding });
 
@@ -73,6 +78,7 @@ class KlintStorage {
       const timer = new Date();
       this.reset();
 
+      this.users = deserialize(Map, fs.readFileSync(this.usersPath, { encoding: this.jsonEncoding })) as Map<string, User>;
       this.projects = deserialize(Map, fs.readFileSync(this.projectsPath, { encoding: this.jsonEncoding })) as Map<string, Project>;
       //  Somehow, manually restoring Map is *way* faster than restoring it at once.
       let plainMarkingDatas = JSON.parse(fs.readFileSync(this.markingDatasPath, { encoding: this.jsonEncoding }));
@@ -90,7 +96,7 @@ class KlintStorage {
 
   static async addDummyData() {
     if (KlintStorage.projects !== undefined) {
-      [0, 1, 2, 3, 4].forEach(n => {
+      [0].forEach(n => {
         let dummy = new Project();
         dummy.classes.push({ classID: 'tree', defaultTitle: 'Tree', scope: MarkingScope.Objects });
         dummy.classes.push({ classID: 'hasTrees', defaultTitle: 'Contains Tree(s)', scope: MarkingScope.Tags });
@@ -98,15 +104,23 @@ class KlintStorage {
         dummy.mediaCollections.push({ id: 'video_collection_dummy', mediaType: ProjectMediaType.Video, title: 'Video Collection' });
         dummy.mediaCollections.push({ id: 'image_collection_dummy', mediaType: ProjectMediaType.Images, title: 'Image Collection' });
         KlintStorage.projects.set(String(n), dummy);
-        for (let index = 0; index < 10; index++) {
+        for (let index = 0; index < 3; index++) {
           let markingData = new MarkingData();
           markingData.taggedClassIDs.push('hasTrees');
           markingData.boxMarkings.push({ classID: 'tree', first: [42, 42], second: [24, 24] });
-          KlintStorage.markingDatas.set(this.toCompoundKey([String(n), 'video_collection_dummy', String(index)]), markingData);
+          KlintStorage.markingDatas.set(this.toCompoundKey([String(n), 'image_collection_dummy', String(index)+'.jpg']), markingData);
           KlintStorage.alterations++;
         }
       });
     }
+    let dummy = new User();
+    dummy.screenName = 'Dummy User';
+    dummy.pwSalt = this.getSalt();
+    let pw = 'dummy';
+    dummy.pwHash = await this.getPwHash(pw, dummy.pwSalt);
+    KlintStorage.users.set('dummy', dummy);
+    console.log(dummy);
+    KlintStorage.alterations++;
   }
 
   static projectHasCollection(projectID: string, collectionID: string) {
@@ -119,6 +133,12 @@ class KlintStorage {
     });
     return result;
   };
+
+  static async getPwHash(pw: string, salt: string) {
+    return crypto.pbkdf2Sync(pw, salt, 10042, 64, 'sha512').toString('hex');
+  }
+
+  static getSalt() { return crypto.randomBytes(64).toString('hex'); }
 
 }
 export { KlintStorage, KeyValuePair };
