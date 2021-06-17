@@ -57,7 +57,6 @@ app.use(fileUpload({
 //	Middleware for Authorization and Authentification
 //	app.use(jwt({ secret: getPersonalSecret, algorithms: ['HS256'] }).unless({ path: ['/auth'] }));
 const authorisationJWT = (req: Request, res: Response, next: NextFunction) => {
-
 	let authHeader = req.headers.authorization;
 	req.username = "";
 
@@ -67,10 +66,16 @@ const authorisationJWT = (req: Request, res: Response, next: NextFunction) => {
 		let token: any = authHeader.split(' ')[1];
 		let payload = jwt.decode(token, { json: true });
 		let user = KlintStorage.users.get(payload?.user);
-		if (user && jwt.verify(token, user.jwtSecret)) {
-			console.log('Authenticated: ' + payload?.user + ' (' + user.screenName + ')')
-			req.username = payload?.user;
-			next();
+		if (user) {
+			try {
+				jwt.verify(token, user.jwtSecret)
+				console.log('Authenticated: ' + payload?.user + ' (' + user.screenName + ')')
+				req.username = payload?.user;
+				next();
+			} catch (error) {
+				console.error(error);
+				res.sendStatus(StatusCode.ClientErrorUnauthorized);
+			}
 		} else {
 			console.log('Authentification failed: ' + payload);
 			res.sendStatus(StatusCode.ClientErrorUnauthorized);
@@ -88,24 +93,49 @@ const authorisationJWT = (req: Request, res: Response, next: NextFunction) => {
 
 //	Endpoint for Authorization and Authentification
 app.post('/auth', async (request, response) => {
+
+	let authHeader = request.headers.authorization;
 	const { username, password, screen } = request.body;
-	let user: User | undefined = KlintStorage.users.get(username);
-	if (!user) {
-		return response.sendStatus(StatusCode.ClientErrorNotFound);
-	} else {
-		let hash = await KlintStorage.getPwHash(password, user.pwSalt);
-		if (!(hash === user.pwHash)) {
-			return response.sendStatus(StatusCode.ClientErrorUnauthorized);
+	if (authHeader) {
+		// Refresh Token
+		let token: any = authHeader.split(' ')[1];
+		let payload = jwt.decode(token, { json: true });
+		let user = KlintStorage.users.get(payload?.user);
+		if (user) {
+			try {
+				jwt.verify(token, user.jwtSecret);
+				return response.status(StatusCode.SuccessOK).send(getToken(username, user));
+			} catch (error) {
+				console.error(error);
+				return response.sendStatus(StatusCode.ClientErrorUnauthorized);
+			}
 		} else {
-			let payload = { user: username };
-			user.jwtSecret = KlintStorage.getSalt();
-			let token = jwt.sign(payload, user.jwtSecret, { algorithm: 'HS256', expiresIn: '1m' });
-			KlintStorage.users.set(username, user);
-			return response.status(StatusCode.SuccessOK).send(token);
+			return response.sendStatus(StatusCode.ClientErrorUnauthorized)
+		}
+	} else {
+		// New Token
+		let user: User | undefined = KlintStorage.users.get(username);
+		if (!user) {
+			return response.sendStatus(StatusCode.ClientErrorNotFound);
+		} else {
+			let hash = await KlintStorage.getPwHash(password, user.pwSalt);
+			if (!(hash === user.pwHash)) {
+				return response.sendStatus(StatusCode.ClientErrorUnauthorized);
+			} else {
+				return response.status(StatusCode.SuccessOK).send(getToken(username, user));
+			}
 		}
 	}
-
 });
+
+//	Method for Token Creation
+const getToken = (username: string, user: User) => {
+	let payload = { user: username };
+	user.jwtSecret = KlintStorage.getSalt();
+	let token = jwt.sign(payload, user.jwtSecret, { algorithm: 'HS256', expiresIn: '1m' });
+	KlintStorage.users.set(username, user);
+	return token;
+}
 
 
 //  Setup Routes
