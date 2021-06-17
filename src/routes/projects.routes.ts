@@ -1,14 +1,16 @@
 import { plainToClass } from 'class-transformer';
-import { Router } from 'express';
+import { request, response, Router } from 'express';
 import fileUpload from 'express-fileupload';
 import fs from 'fs';
 import path from 'path';
 import StatusCode from 'status-code-enum';
 import { KeyValuePair, KlintStorage } from '../classes/KlintStorage';
 import { Project } from '../entities/Project';
+import UpdatesServer from './updates.server';
 
 class ProjectsRoutes {
   private static projectsRouter = Router();
+  private static writeRights = new Map<string, string>();
 
   //  for static storage
   public static options = {
@@ -44,18 +46,50 @@ class ProjectsRoutes {
       }
     });
 
+    //  OBRTAIN WRITE ACCESS BY ID
+    this.projectsRouter.get('/:id/write', async (request, response) => {
+      let username = request.username;
+      let id = request.params.id;
+      let currentOwner = this.writeRights.get(id);
+      if ((currentOwner && (currentOwner == username)) || !currentOwner) {
+        this.writeRights.set(id, username);
+        return response.sendStatus(StatusCode.SuccessOK);
+      } else {
+        return response.sendStatus(StatusCode.ClientErrorLocked);
+      }
+    });
+
+    //  RELEASE WRITE ACCESS BY ID
+    this.projectsRouter.get('/:id/release', async (request, response) => {
+      let username = request.username;
+      let id = request.params.id;
+      let currentOwner = this.writeRights.get(id);
+      if (currentOwner && currentOwner == username) {
+        this.writeRights.delete(id);
+        return response.sendStatus(StatusCode.SuccessOK);
+      } else {
+        return response.sendStatus(StatusCode.ClientErrorBadRequest);
+      }
+    });
 
     // PUT BY ID
     this.projectsRouter.put('/:id', async (request, response) => {
       const projectID = request.params.id;
+      const username = request.username;
+
+      //  Reject if someone else has obtained rights
+      if (this.writeRights.has(projectID) && this.writeRights.get(projectID) != username) {
+        return response.sendStatus(StatusCode.ClientErrorLocked);
+      }
+
       //  TODO: Check for consistency
       let isValid = true;
-
       if (!isValid) {
         return response.sendStatus(StatusCode.ClientErrorBadRequest);
       } else {
         KlintStorage.projects.set(projectID, plainToClass(Project, request.body));
         KlintStorage.alterations++;
+        UpdatesServer.notifyEntityUpdate(request.username, 'Project', [projectID], false);
 
         // Delete file folder if the corresponding collection is no longer part of this project.
         let collectionsFolder = path.join(ProjectsRoutes.options.root, projectID)
@@ -78,6 +112,13 @@ class ProjectsRoutes {
     //  DELETE BY ID
     this.projectsRouter.delete('/:id', async (request, response) => {
       const projectID = request.params.id;
+      const username = request.username;
+
+      //  Reject if someone else has obtained rights
+      if (this.writeRights.has(projectID) && this.writeRights.get(projectID) != username) {
+        return response.sendStatus(StatusCode.ClientErrorLocked);
+      }
+
       //  Delete Project
       const wasDeleted = KlintStorage.projects.delete(projectID);
       if (!wasDeleted) {
@@ -90,6 +131,7 @@ class ProjectsRoutes {
           }
         });
         KlintStorage.alterations++;
+        UpdatesServer.notifyEntityUpdate(request.username, 'Project', [projectID], true);
 
         //  Delete all stored files for this project
         const folderPath = path.join(ProjectsRoutes.options.root, projectID);
@@ -122,10 +164,15 @@ class ProjectsRoutes {
       const projectID = request.params.id;
       const collectionID = request.params.collectionID
       const fileNameWithExtension = decodeURIComponent(request.params.fileName);
-      if (!projectID || !fileNameWithExtension || !collectionID || !fs.existsSync(path.join(ProjectsRoutes.options.root, projectID, collectionID, fileNameWithExtension))) {
+      const filePath = path.join(ProjectsRoutes.options.root, projectID, collectionID, fileNameWithExtension);
+      if (!fs.existsSync(filePath)) {
         return response.sendStatus(StatusCode.ClientErrorNotFound)
       } else {
-        return response.sendFile(path.join(projectID, collectionID, fileNameWithExtension), ProjectsRoutes.options);
+        return response.sendFile(path.join(projectID, collectionID, fileNameWithExtension), ProjectsRoutes.options,
+          (error) => {
+            if (error)
+              console.log(error);
+          });
       }
     });
 
@@ -152,6 +199,7 @@ class ProjectsRoutes {
           fs.mkdirSync(folderPath, { recursive: true });
         }
         file.mv(filePath);
+        UpdatesServer.notifyEntityUpdate(request.username, 'File', [projectID, collectionID, file.name], false);
         return response.sendStatus(StatusCode.SuccessOK);
       }
     });
@@ -166,6 +214,7 @@ class ProjectsRoutes {
         return response.sendStatus(StatusCode.ClientErrorNotFound)
       } else {
         fs.unlinkSync(path.join(ProjectsRoutes.options.root, projectID, collectionID, fileNameWithExtension));
+        UpdatesServer.notifyEntityUpdate(request.username, 'File', [projectID, collectionID, fileNameWithExtension], true);
         return response.sendStatus(StatusCode.SuccessOK);
       }
     });

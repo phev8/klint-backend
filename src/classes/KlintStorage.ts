@@ -99,16 +99,31 @@ class KlintStorage {
       [0].forEach(n => {
         let dummy = new Project();
         dummy.classes.push({ classID: 'tree', defaultTitle: 'Tree', scope: MarkingScope.Objects });
-        dummy.classes.push({ classID: 'hasTrees', defaultTitle: 'Contains Tree(s)', scope: MarkingScope.Tags });
-        dummy.title = 'Important Project ' + n;
+        dummy.classes.push({ classID: 'pedestrian', defaultTitle: 'Pedestrian', scope: MarkingScope.Objects });
+        dummy.classes.push({ classID: 'car', defaultTitle: 'Car', scope: MarkingScope.Objects });
+
+        dummy.classes.push({ classID: 'road', defaultTitle: 'Road Surface', scope: MarkingScope.Segments });
+        dummy.classes.push({ classID: 'vegetation', defaultTitle: 'Vegetation', scope: MarkingScope.Segments });
+
+        dummy.classes.push({ classID: 'camera.blurry', defaultTitle: 'Blurry', scope: MarkingScope.Tags });
+        dummy.classes.push({ classID: 'camera.wrongExposure', defaultTitle: 'Under- or Overexposed', scope: MarkingScope.Tags });
+        dummy.classes.push({ classID: 'camera.otherProblem', defaultTitle: 'Other Problem', scope: MarkingScope.Tags });
+
+        dummy.classes.push({ classID: 'safety.safe', defaultTitle: 'Safe', scope: MarkingScope.Tags });
+        dummy.classes.push({ classID: 'safety.somewhatUnsafe', defaultTitle: 'Somewhat Unsafe', scope: MarkingScope.Tags });
+        dummy.classes.push({ classID: 'safety.unsafe', defaultTitle: 'Unsafe', scope: MarkingScope.Tags });
+
+        dummy.tagMarkingOptions.push({ id: 'safety', title: 'Overall Safety', additionalInfo: 'Rate the percieved safety of the situation', isSingleChoice: true, classIDs: ['safety.safe', 'safety.somewhatUnsafe', 'safety.unsafe'] });
+        dummy.tagMarkingOptions.push({ id: 'camera', title: 'Image Quality', additionalInfo: 'Check for image quality problems', isSingleChoice: false, classIDs: ['camera.blurry', 'camera.wrongExposure', 'safety.otherProblem'] });
+        dummy.title = 'Example Project ' + n;
         dummy.mediaCollections.push({ id: 'video_collection_dummy', mediaType: ProjectMediaType.Video, title: 'Video Collection' });
         dummy.mediaCollections.push({ id: 'image_collection_dummy', mediaType: ProjectMediaType.Images, title: 'Image Collection' });
         KlintStorage.projects.set(String(n), dummy);
         for (let index = 0; index < 3; index++) {
           let markingData = new MarkingData();
-          markingData.taggedClassIDs.push('hasTrees');
-          markingData.boxMarkings.push({ classID: 'tree', first: [42, 42], second: [24, 24] });
-          KlintStorage.markingDatas.set(this.toCompoundKey([String(n), 'image_collection_dummy', String(index)+'.jpg']), markingData);
+          markingData.taggedClassIDs.push('safety.safe');
+          markingData.boxMarkings.push({ classID: 'tree', first: [420, 420], second: [240, 240] });
+          KlintStorage.markingDatas.set(this.toCompoundKey([String(n), 'image_collection_dummy', String(index) + '.jpg']), markingData);
           KlintStorage.alterations++;
         }
       });
@@ -117,8 +132,10 @@ class KlintStorage {
     dummy.screenName = 'Dummy User';
     dummy.pwSalt = this.getSalt();
     let pw = 'dummy';
+    let username = 'dummy';
     dummy.pwHash = await this.getPwHash(pw, dummy.pwSalt);
-    KlintStorage.users.set('dummy', dummy);
+    KlintStorage.users.set(username, dummy);
+    console.log('Created new user: ' + username + ' (PW: ' + pw + ')');
     console.log(dummy);
     KlintStorage.alterations++;
   }

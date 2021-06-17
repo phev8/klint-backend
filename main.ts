@@ -6,6 +6,7 @@ import fileUpload from 'express-fileupload'
 import { KlintStorage } from './src/classes/KlintStorage';
 import ProjectsRoutes from './src/routes/projects.routes';
 import MarkingsRoutes from './src/routes/markings.routes';
+import UpdatesServer from './src/routes/updates.server';
 import path from 'path';
 import cors from 'cors';
 import jwt, { JsonWebTokenError } from 'jsonwebtoken';
@@ -14,9 +15,19 @@ import StatusCode from 'status-code-enum';
 import ws from 'ws';
 import { Socket } from 'net';
 
+declare global {
+	namespace Express {
+		interface Request {
+			username: string;
+		}
+	}
+}
+
 //  Config
 const PORT = 4242;
+const requireAuthentification = false;
 const insertDummyData = true;
+const resetOnStartUp = true;
 
 
 //	Middleware so we can access request.body
@@ -46,7 +57,11 @@ app.use(fileUpload({
 //	Middleware for Authorization and Authentification
 //	app.use(jwt({ secret: getPersonalSecret, algorithms: ['HS256'] }).unless({ path: ['/auth'] }));
 const authorisationJWT = (req: Request, res: Response, next: NextFunction) => {
+
 	let authHeader = req.headers.authorization;
+	req.username = "";
+
+	//	Header exists
 	if (authHeader) {
 		//	This should be the JWT
 		let token: any = authHeader.split(' ')[1];
@@ -54,11 +69,19 @@ const authorisationJWT = (req: Request, res: Response, next: NextFunction) => {
 		let user = KlintStorage.users.get(payload?.user);
 		if (user && jwt.verify(token, user.jwtSecret)) {
 			console.log('Authenticated: ' + payload?.user + ' (' + user.screenName + ')')
+			req.username = payload?.user;
 			next();
 		} else {
 			console.log('Authentification failed: ' + payload);
 			res.sendStatus(StatusCode.ClientErrorUnauthorized);
 		}
+	}
+
+	//	No Authorization Header
+	if (!requireAuthentification) {
+		next();
+	} else {
+		res.sendStatus(StatusCode.ClientErrorUnauthorized);
 	}
 };
 
@@ -88,14 +111,14 @@ app.post('/auth', async (request, response) => {
 //  Setup Routes
 app.use('/static', express.static('storage/static'));
 app.get('/', (req: Request, res: Response) => res.send('Hello from the Klint Backend!'));
-//app.use('/projects', authorisationJWT, ProjectsRoutes.router);
-//app.use('/markings', authorisationJWT, MarkingsRoutes.router);
-app.use('/projects', ProjectsRoutes.router);
-app.use('/markings', MarkingsRoutes.router);
+app.use('/projects', authorisationJWT, ProjectsRoutes.router);
+app.use('/markings', authorisationJWT, MarkingsRoutes.router);
+//app.use('/projects', ProjectsRoutes.router);
+//app.use('/markings', MarkingsRoutes.router);
 
 
 //  Restore Data
-if (fs.existsSync(KlintStorage.projectsPath)) {
+if (fs.existsSync(KlintStorage.projectsPath) && !resetOnStartUp) {
 	try {
 		KlintStorage.restoreFromDisk();
 	} catch (error) {
@@ -108,25 +131,13 @@ if (fs.existsSync(KlintStorage.projectsPath)) {
 }
 KlintStorage.autoSave();
 
-
-// Set up a headless websocket server that prints any
-// events that come in.
-const wsServer = new ws.Server({ noServer: true });
-wsServer.on('connection', socket => {
-	socket.on('message', message => {
-		console.log('Incoming: ' + message);
-		socket.send('Received: ' + message);
-	});
-});
-
-// `server` is a vanilla Node.js HTTP server, so use
-// the same ws upgrade process described here:
-// https://www.npmjs.com/package/ws#multiple-servers-sharing-a-single-https-server
+//	Start Server and WebSocket Server
 const server = app.listen(4242);
+UpdatesServer.init();
 server.on('upgrade', (request: Request, socket: Socket, head) => {
 	if (request.url == '/updates') {
-		wsServer.handleUpgrade(request, socket, head, socket => {
-			wsServer.emit('connection', socket, request);
+		UpdatesServer.server.handleUpgrade(request, socket, head, socket => {
+			UpdatesServer.server.emit('connection', socket, request);
 		});
 	} else {
 		socket.end();
