@@ -64,13 +64,14 @@ const authorisationJWT = (req: Request, res: Response, next: NextFunction) => {
 	if (authHeader) {
 		//	This should be the JWT
 		let token: any = authHeader.split(' ')[1];
-		let payload = jwt.decode(token, { json: true });
-		let user = KlintStorage.users.get(payload?.user);
+		let payload: any = jwt.decode(token, { json: true });
+		let username: any = payload?.user;
+		let user = KlintStorage.users.get(username);
 		if (user) {
 			try {
 				jwt.verify(token, user.jwtSecret)
-				console.log('Authenticated: ' + payload?.user + ' (' + user.screenName + ')')
-				req.username = payload?.user;
+				console.log('Authenticated: ' + username + ' (' + user.screenName + ')')
+				req.username = username;
 				next();
 			} catch (error) {
 				console.error(error);
@@ -99,7 +100,7 @@ app.post('/auth', async (request, response) => {
 	if (authHeader) {
 		// Refresh Token
 		let token: any = authHeader.split(' ')[1];
-		let payload = jwt.decode(token, { json: true });
+		let payload: any = jwt.decode(token, { json: true });
 		let user = KlintStorage.users.get(payload?.user);
 		if (user) {
 			try {

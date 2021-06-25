@@ -29,9 +29,9 @@ class UpdatesServer {
       let tokenHeader: string | undefined = request.headers.authorization;
 
       if (tokenHeader) {
-        let payload = jwt.decode(tokenHeader.split(' ')[1], { json: true });
-        if (payload?.user) {
-          let username: string = payload.user;
+        let payload: any = jwt.decode(tokenHeader.split(' ')[1], { json: true });
+        let username: string = payload?.user;
+        if (username) {
           if (UpdatesServer.clients.has(username)) {
             console.log('User is switching location.');
             UpdatesServer.clients.get(username)?.close(1001, 'Client logged in from another location.');
