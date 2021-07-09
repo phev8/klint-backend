@@ -128,17 +128,21 @@ class KlintStorage {
         }
       });
     }
-    let dummy = new User();
-    dummy.screenName = 'Dummy User';
-    dummy.pwSalt = this.getSalt();
-    let pw = 'dummy';
-    let username = 'dummy';
-    dummy.pwHash = await this.getPwHash(pw, dummy.pwSalt);
-    KlintStorage.users.set(username, dummy);
-    console.log('Created new user: ' + username + ' (PW: ' + pw + ')');
-    console.log(dummy);
-    KlintStorage.alterations++;
+    this.createOrReplaceUser('dummy', 'dummy', 'Dummy User');
   }
+
+  static async createOrReplaceUser(username: string, password: string, screenName: string) {
+    if (username && password) {
+      let user = new User();
+      user.screenName = screenName;
+      user.pwSalt = this.getSalt();
+      user.pwHash = this.getPwHash(password, user.pwSalt);
+      KlintStorage.users.set(username, user)
+      KlintStorage.alterations++;
+      console.log('Created new user: ' + username + ' (PW: ' + password + ')');
+    }
+  }
+
 
   static projectHasCollection(projectID: string, collectionID: string) {
     let project = KlintStorage.projects.get(projectID);
@@ -151,7 +155,7 @@ class KlintStorage {
     return result;
   };
 
-  static async getPwHash(pw: string, salt: string) {
+  static getPwHash(pw: string, salt: string) {
     return crypto.pbkdf2Sync(pw, salt, 10042, 64, 'sha512').toString('hex');
   }
 

@@ -1,0 +1,112 @@
+{
+  "projectId": "42",
+  "projectData": {
+    "title": "Import Project Example",
+    "mediaCollections": [
+      {
+        "id": "collection1",
+        "mediaType": "I",
+        "title": "Image Collection"
+      }
+    ],
+    "classes": [
+      {
+        "classID": "tree",
+        "defaultTitle": "Tree",
+        "scope": "O"
+      },
+      {
+        "classID": "pedestrian",
+        "defaultTitle": "Pedestrian",
+        "scope": "O"
+      },
+      {
+        "classID": "car",
+        "defaultTitle": "Car",
+        "scope": "O"
+      },
+      {
+        "classID": "road",
+        "defaultTitle": "Road Surface",
+        "scope": "S"
+      },
+      {
+        "classID": "vegetation",
+        "defaultTitle": "Vegetation",
+        "scope": "S"
+      },
+      {
+        "classID": "camera.blurry",
+        "defaultTitle": "Blurry",
+        "scope": "T"
+      },
+      {
+        "classID": "camera.wrongExposure",
+        "defaultTitle": "Under- or Overexposed",
+        "scope": "T"
+      },
+      {
+        "classID": "camera.otherProblem",
+        "defaultTitle": "Other Problem",
+        "scope": "T"
+      },
+      {
+        "classID": "safety.safe",
+        "defaultTitle": "Safe",
+        "scope": "T"
+      },
+      {
+        "classID": "safety.somewhatUnsafe",
+        "defaultTitle": "Somewhat Unsafe",
+        "scope": "T"
+      },
+      {
+        "classID": "safety.unsafe",
+        "defaultTitle": "Unsafe",
+        "scope": "T"
+      }
+    ],
+    "tagMarkingOptions": [
+      {
+        "id": "safety",
+        "title": "Overall Safety",
+        "additionalInfo": "Rate the percieved safety of the situation",
+        "isSingleChoice": true,
+        "classIDs": [
+          "safety.safe",
+          "safety.somewhatUnsafe",
+          "safety.unsafe"
+        ]
+      },
+      {
+        "id": "camera",
+        "title": "Image Quality",
+        "additionalInfo": "Check for image quality problems",
+        "isSingleChoice": false,
+        "classIDs": [
+          "camera.blurry",
+          "camera.wrongExposure",
+          "camera.otherProblem"
+        ]
+      }
+    ]
+  },
+  "collectionData": [
+    {
+      "collectionId": "collection1",
+      "path": "/Users/janiselfert/Lokal/klint-backend-git/test_import/collection1"
+    }
+  ],
+  "users": [
+    {
+      "username": "admin",
+      "password": "admin",
+      "screenName": "Administrator"
+    },
+    {
+      "username": "test",
+      "password": "test",
+      "screenName": "Test User"
+    }
+  ]
+}

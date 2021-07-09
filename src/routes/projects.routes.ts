@@ -171,7 +171,7 @@ class ProjectsRoutes {
         return response.sendFile(path.join(projectID, collectionID, fileNameWithExtension), ProjectsRoutes.options,
           (error) => {
             if (error)
-              console.log(error);
+              console.log('Cannot send file: ' + error);
           });
       }
     });
