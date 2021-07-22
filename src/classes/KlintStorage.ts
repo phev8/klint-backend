@@ -122,7 +122,11 @@ class KlintStorage {
         for (let index = 0; index < 3; index++) {
           let markingData = new MarkingData();
           markingData.taggedClassIDs.push('safety.safe');
-          markingData.boxMarkings.push({ classID: 'tree', first: [420, 420], second: [240, 240] });
+          markingData.boxMarkings.push({ classID: 'tree', first: [0, 0], second: [0.2, 0.4] });
+          markingData.boxMarkings.push({ classID: 'tree', first: [0.5, 0.5], second: [0.75, 0.75] });
+          markingData.boxMarkings.push({ classID: 'tree', first: [0.6, 0.6], second: [0.70, 0.70] });
+          markingData.boxMarkings.push({ classID: 'tree', first: [0.625, 0.625], second: [0.8, 0.8] });
+          markingData.boxMarkings.push({ classID: 'tree', first: [0.9, 0.9], second: [0.95, 0.975] });
           KlintStorage.markingDatas.set(this.toCompoundKey([String(n), 'image_collection_dummy', String(index) + '.jpg']), markingData);
           KlintStorage.alterations++;
         }
