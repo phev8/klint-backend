@@ -12,7 +12,8 @@ enum MarkingScope {
 type MarkingClass = {
   classID: string,
   defaultTitle: string,
-  scope: MarkingScope
+  scope: MarkingScope,
+  argb: number[]
 }
 
 type TagMarkingOption = {

@@ -98,20 +98,20 @@ class KlintStorage {
     if (KlintStorage.projects !== undefined) {
       [0].forEach(n => {
         let dummy = new Project();
-        dummy.classes.push({ classID: 'tree', defaultTitle: 'Tree', scope: MarkingScope.Objects });
-        dummy.classes.push({ classID: 'pedestrian', defaultTitle: 'Pedestrian', scope: MarkingScope.Objects });
-        dummy.classes.push({ classID: 'car', defaultTitle: 'Car', scope: MarkingScope.Objects });
+        dummy.classes.push({ classID: 'tree', defaultTitle: 'Tree', scope: MarkingScope.Objects, argb: [255, 255, 0, 0] });
+        dummy.classes.push({ classID: 'pedestrian', defaultTitle: 'Pedestrian', scope: MarkingScope.Objects, argb: [255, 0, 255, 0] });
+        dummy.classes.push({ classID: 'car', defaultTitle: 'Car', scope: MarkingScope.Objects, argb: [255, 0, 0, 255] });
 
-        dummy.classes.push({ classID: 'road', defaultTitle: 'Road Surface', scope: MarkingScope.Segments });
-        dummy.classes.push({ classID: 'vegetation', defaultTitle: 'Vegetation', scope: MarkingScope.Segments });
+        dummy.classes.push({ classID: 'road', defaultTitle: 'Road Surface', scope: MarkingScope.Segments, argb: [0] });
+        dummy.classes.push({ classID: 'vegetation', defaultTitle: 'Vegetation', scope: MarkingScope.Segments, argb: [0] });
 
-        dummy.classes.push({ classID: 'camera.blurry', defaultTitle: 'Blurry', scope: MarkingScope.Tags });
-        dummy.classes.push({ classID: 'camera.wrongExposure', defaultTitle: 'Under- or Overexposed', scope: MarkingScope.Tags });
-        dummy.classes.push({ classID: 'camera.otherProblem', defaultTitle: 'Other Problem', scope: MarkingScope.Tags });
+        dummy.classes.push({ classID: 'camera.blurry', defaultTitle: 'Blurry', scope: MarkingScope.Tags, argb: [0] });
+        dummy.classes.push({ classID: 'camera.wrongExposure', defaultTitle: 'Under- or Overexposed', scope: MarkingScope.Tags, argb: [0] });
+        dummy.classes.push({ classID: 'camera.otherProblem', defaultTitle: 'Other Problem', scope: MarkingScope.Tags, argb: [0] });
 
-        dummy.classes.push({ classID: 'safety.safe', defaultTitle: 'Safe', scope: MarkingScope.Tags });
-        dummy.classes.push({ classID: 'safety.somewhatUnsafe', defaultTitle: 'Somewhat Unsafe', scope: MarkingScope.Tags });
-        dummy.classes.push({ classID: 'safety.unsafe', defaultTitle: 'Unsafe', scope: MarkingScope.Tags });
+        dummy.classes.push({ classID: 'safety.safe', defaultTitle: 'Safe', scope: MarkingScope.Tags, argb: [0] });
+        dummy.classes.push({ classID: 'safety.somewhatUnsafe', defaultTitle: 'Somewhat Unsafe', scope: MarkingScope.Tags, argb: [0] });
+        dummy.classes.push({ classID: 'safety.unsafe', defaultTitle: 'Unsafe', scope: MarkingScope.Tags, argb: [0] });
 
         dummy.tagMarkingOptions.push({ id: 'safety', title: 'Overall Safety', additionalInfo: 'Rate the percieved safety of the situation', isSingleChoice: true, classIDs: ['safety.safe', 'safety.somewhatUnsafe', 'safety.unsafe'] });
         dummy.tagMarkingOptions.push({ id: 'camera', title: 'Image Quality', additionalInfo: 'Check for image quality problems', isSingleChoice: false, classIDs: ['camera.blurry', 'camera.wrongExposure', 'safety.otherProblem'] });
@@ -123,10 +123,10 @@ class KlintStorage {
           let markingData = new MarkingData();
           markingData.taggedClassIDs.push('safety.safe');
           markingData.boxMarkings.push({ classID: 'tree', first: [0, 0], second: [0.2, 0.4] });
-          markingData.boxMarkings.push({ classID: 'tree', first: [0.5, 0.5], second: [0.75, 0.75] });
-          markingData.boxMarkings.push({ classID: 'tree', first: [0.6, 0.6], second: [0.70, 0.70] });
+          markingData.boxMarkings.push({ classID: 'pedestrian', first: [0.5, 0.5], second: [0.75, 0.75] });
+          markingData.boxMarkings.push({ classID: 'car', first: [0.6, 0.6], second: [0.70, 0.70] });
           markingData.boxMarkings.push({ classID: 'tree', first: [0.625, 0.625], second: [0.8, 0.8] });
-          markingData.boxMarkings.push({ classID: 'tree', first: [0.9, 0.9], second: [0.95, 0.975] });
+          markingData.boxMarkings.push({ classID: 'car', first: [0.9, 0.9], second: [0.95, 0.975] });
           KlintStorage.markingDatas.set(this.toCompoundKey([String(n), 'image_collection_dummy', String(index) + '.jpg']), markingData);
           KlintStorage.alterations++;
         }
