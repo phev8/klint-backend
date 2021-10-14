@@ -140,7 +140,7 @@ const getToken = (username: string, user: User) => {
 
 
 //  Setup Routes
-app.use('/static', express.static('storage/static'));
+app.use('/static', express.static('static'));
 app.get('/', (req: Request, res: Response) => res.send('Hello from the Klint Backend!'));
 app.use('/projects', authorisationJWT, ProjectsRoutes.router);
 app.use('/markings', authorisationJWT, MarkingsRoutes.router);

@@ -46,6 +46,7 @@ const replaceProjectData = () => {
   //Checking projectId
   if (!configJSON.projectId) {
     console.log('projectId must not be null or undefined.');
+    return;
   }
 
   // Checking media collections

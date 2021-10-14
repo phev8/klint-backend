@@ -155,7 +155,7 @@ class ProjectsRoutes {
           fileNameList.push(value);
         });
       }
-      response.json(fileNameList);
+      response.json(JSON.stringify(fileNameList));
     });
 
 

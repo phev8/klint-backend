@@ -94,7 +94,7 @@
   "collectionData": [
     {
       "collectionId": "collection1",
-      "path": "/Users/janiselfert/Lokal/klint-backend-git/test_import/collection1"
+      "path": "/import/collection1"
     }
   ],
   "users": [

@@ -6,7 +6,7 @@
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"start": "nodemon main.ts --ignore 'storage/*.json'",
-		"import": "ts-node ./import.ts -- /test_import/importExample.json reset"
+		"import": "ts-node import.ts -- import/importExample.json reset"
 	},
 	"keywords": [],
 	"author": "",
