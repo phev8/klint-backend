@@ -14,7 +14,7 @@ class ProjectsRoutes {
 
   //  for static storage
   public static options = {
-    root: path.join(__dirname, '../../storage/projectFiles')
+    root: path.join(__dirname, '../../external/storage/projectFiles')
   }
 
   public static get router(): Router {

@@ -1,19 +1,26 @@
-import { deserialize, plainToClass } from 'class-transformer';
+import { deserialize, plainToClass, plainToClassFromExist, Type } from 'class-transformer';
+import "reflect-metadata"
+import { Console } from 'console';
+import { privateEncrypt } from 'crypto';
 import fs from 'fs';
 import path from 'path';
+import { hasUncaughtExceptionCaptureCallback } from 'process';
 import { KlintStorage } from './src/classes/KlintStorage';
-import { Project } from './src/entities/Project';
+import { MarkingClass, Project } from './src/entities/Project';
 import ProjectsRoutes from './src/routes/projects.routes';
 
 type CollectionData = { collectionId: string, path: string };
 type UserData = { username: string, password: string, screenName: string };
 
-type ConfigJSON = {
-  projectId: string,
-  projectData: Project,
-  collectionData: CollectionData[],
-  users: UserData[]
-};
+class ConfigJSON {
+  projectId: string = "";
+
+  @Type(() => Project)
+  projectData: Project = new Project();
+
+  collectionData: CollectionData[] = [];
+  users: UserData[] = [];
+}
 
 let pathToConfigJSON = process.argv[3];
 let reset = false;
@@ -31,17 +38,22 @@ if (process.argv.includes('move')) {
 
 const replaceProjectData = () => {
   // Locate config JSON and load as any object
-  let configJSONObject: any = {};
+  let configJSON: ConfigJSON;
   try {
     console.log('Importing from: ' + pathToConfigJSON);
-    configJSONObject = JSON.parse(fs.readFileSync(pathToConfigJSON, { encoding: jsonEncoding }))
-    configJSONObject.projectData = plainToClass(Project, configJSONObject.projectData);
-    configJSONObject = configJSONObject as ConfigJSON;
+    configJSON = plainToClass(ConfigJSON, JSON.parse(fs.readFileSync(pathToConfigJSON, { encoding: jsonEncoding })));
+    console.log(configJSON.projectData);
+    //TODO: FIX THIS 
+    configJSON.projectData.classes.forEach(element => {
+      console.log(typeof (element));
+    });
+    if (!(configJSON.projectData instanceof Project)) {
+      throw TypeError("Project couldn't be verified.");
+    }
   } catch (error) {
     console.log('Cannot decode config file: ' + error);
+    return;
   }
-
-  let configJSON = configJSONObject as ConfigJSON;
 
   //Checking projectId
   if (!configJSON.projectId) {
@@ -75,7 +87,10 @@ const replaceProjectData = () => {
 
   // Inserting Project
   console.log('Inserting Project...');
-  KlintStorage.projects.set(configJSON.projectId, configJSON.projectData as Project);
+  let p: Project = plainToClass(Project, configJSON.projectData);
+  console.log(typeof p.classes);
+
+  KlintStorage.projects.set(configJSON.projectId, p);
 
   // Inserting Users
   console.log('Inserting Users...');
@@ -87,7 +102,7 @@ const replaceProjectData = () => {
   console.log('Transfering Media...');
   configJSON.collectionData.forEach(collection => {
     if (collection.collectionId) {
-      const folderPath = path.join(path.join(__dirname, '/storage/projectFiles'), configJSON.projectId, collection.collectionId);
+      const folderPath = path.join(__dirname,'external','storage', 'projectFiles', configJSON.projectId, collection.collectionId);
       if (!fs.existsSync(folderPath)) {
         fs.mkdirSync(folderPath, { recursive: true });
       } else {

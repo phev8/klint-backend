@@ -26,8 +26,8 @@ declare global {
 //  Config
 const PORT = 4242;
 const requireAuthentification = false;
-const insertDummyData = true;
-const resetOnStartUp = true;
+const insertDummyData = false;
+const resetOnStartUp = false;
 
 
 //	Middleware so we can access request.body

@@ -14,9 +14,9 @@ class KlintStorage {
   public static projects: Map<string, Project> = new Map<string, Project>();
   public static markingDatas: Map<string, MarkingData> = new Map<string, MarkingData>();
   public static users: Map<string, User> = new Map<string, User>();
-  public static projectsPath = process.env.PWD + '/storage/projects.json';
-  public static markingDatasPath = process.env.PWD + '/storage/markingDatas.json';
-  public static usersPath = process.env.PWD + '/storage/users.json';
+  public static projectsPath = process.env.PWD + '/external/storage/projects.json';
+  public static markingDatasPath = process.env.PWD + '/external/storage/markingDatas.json';
+  public static usersPath = process.env.PWD + '/external/storage/users.json';
 
   private static isWriting = false;
   private static lastSave: Date;
@@ -98,20 +98,20 @@ class KlintStorage {
     if (KlintStorage.projects !== undefined) {
       [0].forEach(n => {
         let dummy = new Project();
-        dummy.classes.push({ classID: 'tree', defaultTitle: 'Tree', scope: MarkingScope.Objects, argb: [255, 255, 0, 0] });
-        dummy.classes.push({ classID: 'pedestrian', defaultTitle: 'Pedestrian', scope: MarkingScope.Objects, argb: [255, 0, 255, 0] });
-        dummy.classes.push({ classID: 'car', defaultTitle: 'Car', scope: MarkingScope.Objects, argb: [255, 0, 0, 255] });
+        dummy.classes.push({ classID: 'tree', defaultTitle: 'Tree', scope: MarkingScope.Objects, rgb: [1, 0, 0] });
+        dummy.classes.push({ classID: 'pedestrian', defaultTitle: 'Pedestrian', scope: MarkingScope.Objects, rgb: [0, 1, 0] });
+        dummy.classes.push({ classID: 'car', defaultTitle: 'Car', scope: MarkingScope.Objects, rgb: [0, 0, 1] });
 
-        dummy.classes.push({ classID: 'road', defaultTitle: 'Road Surface', scope: MarkingScope.Segments, argb: [0] });
-        dummy.classes.push({ classID: 'vegetation', defaultTitle: 'Vegetation', scope: MarkingScope.Segments, argb: [0] });
+        dummy.classes.push({ classID: 'road', defaultTitle: 'Road Surface', scope: MarkingScope.Segments, rgb: [] });
+        dummy.classes.push({ classID: 'vegetation', defaultTitle: 'Vegetation', scope: MarkingScope.Segments, rgb: [] });
 
-        dummy.classes.push({ classID: 'camera.blurry', defaultTitle: 'Blurry', scope: MarkingScope.Tags, argb: [0] });
-        dummy.classes.push({ classID: 'camera.wrongExposure', defaultTitle: 'Under- or Overexposed', scope: MarkingScope.Tags, argb: [0] });
-        dummy.classes.push({ classID: 'camera.otherProblem', defaultTitle: 'Other Problem', scope: MarkingScope.Tags, argb: [0] });
+        dummy.classes.push({ classID: 'camera.blurry', defaultTitle: 'Blurry', scope: MarkingScope.Tags, rgb: [] });
+        dummy.classes.push({ classID: 'camera.wrongExposure', defaultTitle: 'Under- or Overexposed', scope: MarkingScope.Tags, rgb: [] });
+        dummy.classes.push({ classID: 'camera.otherProblem', defaultTitle: 'Other Problem', scope: MarkingScope.Tags, rgb: [] });
 
-        dummy.classes.push({ classID: 'safety.safe', defaultTitle: 'Safe', scope: MarkingScope.Tags, argb: [0] });
-        dummy.classes.push({ classID: 'safety.somewhatUnsafe', defaultTitle: 'Somewhat Unsafe', scope: MarkingScope.Tags, argb: [0] });
-        dummy.classes.push({ classID: 'safety.unsafe', defaultTitle: 'Unsafe', scope: MarkingScope.Tags, argb: [0] });
+        dummy.classes.push({ classID: 'safety.safe', defaultTitle: 'Safe', scope: MarkingScope.Tags, rgb: [] });
+        dummy.classes.push({ classID: 'safety.somewhatUnsafe', defaultTitle: 'Somewhat Unsafe', scope: MarkingScope.Tags, rgb: [] });
+        dummy.classes.push({ classID: 'safety.unsafe', defaultTitle: 'Unsafe', scope: MarkingScope.Tags, rgb: [] });
 
         dummy.tagMarkingOptions.push({ id: 'safety', title: 'Overall Safety', additionalInfo: 'Rate the percieved safety of the situation', isSingleChoice: true, classIDs: ['safety.safe', 'safety.somewhatUnsafe', 'safety.unsafe'] });
         dummy.tagMarkingOptions.push({ id: 'camera', title: 'Image Quality', additionalInfo: 'Check for image quality problems', isSingleChoice: false, classIDs: ['camera.blurry', 'camera.wrongExposure', 'safety.otherProblem'] });

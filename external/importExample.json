@@ -13,27 +13,52 @@
       {
         "classID": "tree",
         "defaultTitle": "Tree",
-        "scope": "O"
+        "scope": "O",
+        "rgb": [
+          1,
+          0,
+          0
+        ]
       },
       {
         "classID": "pedestrian",
         "defaultTitle": "Pedestrian",
-        "scope": "O"
+        "scope": "O",
+        "rgb": [
+          0,
+          1,
+          0
+        ]
       },
       {
         "classID": "car",
         "defaultTitle": "Car",
-        "scope": "O"
+        "scope": "O",
+        "rgb": [
+          0,
+          0,
+          1
+        ]
       },
       {
         "classID": "road",
         "defaultTitle": "Road Surface",
-        "scope": "S"
+        "scope": "S",
+        "rgb": [
+          0,
+          0.5,
+          0.5
+        ]
       },
       {
         "classID": "vegetation",
         "defaultTitle": "Vegetation",
-        "scope": "S"
+        "scope": "S",
+        "rgb": [
+          0.5,
+          0.5,
+          0
+        ]
       },
       {
         "classID": "camera.blurry",
@@ -94,7 +119,7 @@
   "collectionData": [
     {
       "collectionId": "collection1",
-      "path": "/import/collection1"
+      "path": "/files/external/collection1"
     }
   ],
   "users": [
